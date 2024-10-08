@@ -14,8 +14,11 @@ import scipy
 #saveaddp = 'all_200'
 #saveadd = '_all_200'
 
-#saveaddp = 'all_100_120'
-#saveadd = '_all_100_120'
+saveaddp = 'all_100'
+saveadd = '_all_100'
+
+saveaddp = 'all_100_120'
+saveadd = '_all_100_120'
 
 #saveaddp = 'all_150'
 #saveadd = '_all_150'
@@ -279,6 +282,33 @@ var[27]['varin'] = 'mucapeGB'
 var[27]['bins'] = np.arange(0,5001,20)
 var[27]['sbins'] = np.arange(0,1.01,0.001)
 
+var[28] = OrderedDict()
+var[28]['titlename'] = 'ML CIN (GB1)'
+var[28]['units'] = 'J/kg'
+var[28]['varname'] = 'mlcinGB1'
+var[28]['varins'] = 'mlcinsGB1'
+var[28]['varin'] = 'mlcinGB1'
+var[28]['bins'] = np.arange(0,601,2)
+var[28]['sbins'] = np.arange(0,1.01,0.001)
+
+var[29] = OrderedDict()
+var[29]['titlename'] = 'ML CIN (GB)'
+var[29]['units'] = 'J/kg'
+var[29]['varname'] = 'mlcinGB'
+var[29]['varins'] = 'mlcinsGB'
+var[29]['varin'] = 'mlcinGB'
+var[29]['bins'] = np.arange(0,601,2)
+var[29]['sbins'] = np.arange(0,1.01,0.001)
+
+var[30] = OrderedDict()
+var[30]['titlename'] = 'MU CIN (GB)'
+var[30]['units'] = 'J/kg'
+var[30]['varname'] = 'mucinGB'
+var[30]['varins'] = 'mucinsGB'
+var[30]['varin'] = 'mucinGB'
+var[30]['bins'] = np.arange(0,601,2)
+var[30]['sbins'] = np.arange(0,1.01,0.001)
+
 #subbox = np.array([3,5,9,27])
 subbox = np.array([3,4,5,9,27,54])
 subbox = np.array([3,4,5,9,27])
@@ -463,6 +493,10 @@ for c in np.arange(0,len(cscrs)):
                     elif 'mlcape' in varins:
                         sc_scr = evars['c_lls']
                     elif 'mucape' in varins:
+                        sc_scr = evars['c_lls'] 
+                    elif 'mlcin' in varins:
+                        sc_scr = evars['c_lls']
+                    elif 'mucin' in varins:
                         sc_scr = evars['c_lls']
                 fig,ax = plt.subplots(1,1,figsize=[10,4])
                 max_freq = 0
@@ -472,7 +506,7 @@ for c in np.arange(0,len(cscrs)):
                     varn = np.abs(varn)
 
                     # Change data to nan if does not meet screen
-                    if ('sfc' in varins) or ('850' in varins) or ('500' in varins) or ('250' in varins) or ('_ll' in varins) or ('_ml' in varins) or ('mlcape' in varins) or ('mucape' in varins):
+                    if ('sfc' in varins) or ('850' in varins) or ('500' in varins) or ('250' in varins) or ('_ll' in varins) or ('_ml' in varins) or ('mlcape' in varins) or ('mucape' in varins) or ('mlcin' in varins) or ('mucin' in varins):
                         scrn = sc_scr[cn,s]
                         #print(np.nanmax(scrn))
                         varn[scrn > cscr] = np.nan
