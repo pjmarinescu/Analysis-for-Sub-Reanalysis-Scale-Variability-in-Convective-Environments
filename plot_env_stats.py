@@ -14,20 +14,28 @@ import scipy
 #saveaddp = 'all_200'
 #saveadd = '_all_200'
 
-saveaddp = 'all_100'
-saveadd = '_all_100'
+saveaddp = 'all_100_p25'
+saveadd = '_all_100_p25'
 
-saveaddp = 'all_100_120'
-saveadd = '_all_100_120'
+#saveaddp = 'all_100_p25_120'
+#saveadd = '_all_100_p25_120'
+
+#saveaddp = 'all_100_p20_120'
+#saveadd = '_all_100_p20_120'
 
 #saveaddp = 'all_150'
 #saveadd = '_all_150'
 
-#saveaddp = 'all_100_p15'
-#saveadd = '_all_100_p15'
+#saveaddp = 'all_100_p15_120'
+#saveadd = '_all_100_p15_120'
 
+#saveaddp = 'all_100_p10_120'
+#saveadd = '_all_100_p10_120'
+
+print(saveadd)
 # Create list of cases to loop through
 cases = ['ARG1.1-R_old','ARG1.2-R','BRA1.1-R','BRA1.2-R','AUS1.1-R','DRC1.1-R','PHI1.1-R','PHI2.1-R','WPO1.1-R','USA1.1-R','RSA1.1-R']
+cases = ['ARG1.1-R','ARG1.2-R','BRA1.1-R','BRA2.1-R','AUS1.1-R','DRC1.1-R','PHI1.1-R','PHI2.1-R','SIO1.1-R','SAU1.1-R','WPO1.1-R','USA1.1-R','USA3.1-R']
 #cases = ['WPO1.1-R']
 #cases = ['ARG1.1-R_old','ARG1.2-R','BRA1.1-R','BRA1.2-R','AUS1.1-R'] #'DRC1.1-R','PHI1.1-R','PHI1.1-RPR','PHI2.1-R','WPO1.1-R','USA1.1-R','RSA1.1-R','BRA1.1-RPR','DRC1.1-RCN','DRC1.1-RCR']
 #cases = ['ARG1.1-R_old']
@@ -328,7 +336,7 @@ for v in np.arange(0,len(var)):
         var_all_app = []
         for c in np.arange(0,len(cases)):
             cn = cases[c]
-            savepath = '/tempest/pmarin//monsoon/ENV/'+cn+'/'+saveaddp+'/'
+            savepath = '/tempest/pmarin//monsoon/ENV/V1/'+cn+'/'+saveaddp+'/'
             files = sorted(glob.glob(savepath+'*SubERA5*.p'))
             for i in np.arange(0,len(files)):
                 SEinfilename = savepath+cn+'_Environments_SubERA5'+saveadd+'_'+str(i)+'.p'
@@ -376,6 +384,10 @@ for c in np.arange(0,len(cscrs)):
     stdp90_save = OrderedDict()
     stdp75_save = OrderedDict()
     ran_save = OrderedDict()
+    ran0199_save = OrderedDict()
+    ran0595_save = OrderedDict()
+    ran1090_save = OrderedDict()
+    ran2575_save = OrderedDict()
     q1_save = OrderedDict()
     q3_save = OrderedDict()
     qcd_save = OrderedDict()
@@ -398,12 +410,12 @@ for c in np.arange(0,len(cscrs)):
         print(cn)
 
         # Data pathnames
-        savepath = '/tempest/pmarin/monsoon/ENV/'+cn+'/'+saveaddp+'/'
+        savepath = '/tempest/pmarin/monsoon/ENV/V1/'+cn+'/'+saveaddp+'/'
         if not os.path.exists(savepath):
            os.makedirs(savepath)
 
         # Location for plotting histograms
-        plotpath = '/tempest/pmarin/monsoon/ENV/Plots/'+cn+'/HIST/'
+        plotpath = '/tempest/pmarin/monsoon/ENV/V1/Plots/'+cn+'/HIST/'
         if not os.path.exists(plotpath):
            os.makedirs(plotpath)
 
@@ -440,6 +452,10 @@ for c in np.arange(0,len(cscrs)):
             stdp90_save[cn,v] = np.zeros((len(subbox),len(files)))
             stdp75_save[cn,v] = np.zeros((len(subbox),len(files)))
             ran_save[cn,v] = np.zeros((len(subbox),len(files)))
+            ran0199_save[cn,v] = np.zeros((len(subbox),len(files)))
+            ran0595_save[cn,v] = np.zeros((len(subbox),len(files)))
+            ran1090_save[cn,v] = np.zeros((len(subbox),len(files)))
+            ran2575_save[cn,v] = np.zeros((len(subbox),len(files)))
             ske_save[cn,v] = np.zeros((len(subbox),len(files)))
             kur_save[cn,v] = np.zeros((len(subbox),len(files)))
             cnt_save[cn,v] = np.zeros((len(subbox),len(files)))
@@ -498,6 +514,7 @@ for c in np.arange(0,len(cscrs)):
                         sc_scr = evars['c_lls']
                     elif 'mucin' in varins:
                         sc_scr = evars['c_lls']
+                
                 fig,ax = plt.subplots(1,1,figsize=[10,4])
                 max_freq = 0
                 for s in np.arange(0,len(subbox)):
@@ -511,7 +528,7 @@ for c in np.arange(0,len(cscrs)):
                         #print(np.nanmax(scrn))
                         varn[scrn > cscr] = np.nan
 
-                    print(np.nanmean(varn))
+                    #print(np.nanmean(varn))
                     avg_save[cn,v][s,i] = np.nanmean(varn)
                     std_save[cn,v][s,i] = np.nanstd(varn)
                     ran_save[cn,v][s,i] = np.nanmax(varn)-np.nanmin(varn)
@@ -520,6 +537,10 @@ for c in np.arange(0,len(cscrs)):
                     p01_save[cn,v][s,i] = np.nanpercentile(varn,1)
                     p95_save[cn,v][s,i] = np.nanpercentile(varn,95)
                     p05_save[cn,v][s,i] = np.nanpercentile(varn,5)
+                    ran0199_save[cn,v][s,i] = p99_save[cn,v][s,i] - p01_save[cn,v][s,i]
+                    ran0595_save[cn,v][s,i] = p95_save[cn,v][s,i] - p05_save[cn,v][s,i]
+                    ran1090_save[cn,v][s,i] = np.nanpercentile(varn,90) - np.nanpercentile(varn,10)
+                    ran2575_save[cn,v][s,i] = np.nanpercentile(varn,75) - np.nanpercentile(varn,25)
                     min_save[cn,v][s,i] = np.nanmin(varn)
                     ske_save[cn,v][s,i] = scipy.stats.skew(varn)
                     kur_save[cn,v][s,i] = scipy.stats.kurtosis(varn)
@@ -572,6 +593,7 @@ for c in np.arange(0,len(cscrs)):
                     if max_temp > max_freq:
                         max_freq = copy.deepcopy(max_temp)
 
+                print(len(var_E5[cn]),i)
                 ax.plot([var_E5[cn][i],var_E5[cn][i]],[0.0,1.0],'-k')
                 ax.set_ylim([0,max_freq+0.01])
                 ax.set_title(cn+': Grid'+str(i)+' '+varname)
@@ -637,9 +659,9 @@ for c in np.arange(0,len(cscrs)):
         #plt.close(fig)
 
     # open a file, where you ant to store the data
-    file = open('/tempest/pmarin/monsoon/ENV/Var_Stats_'+cstr_txt+saveadd+'.p', 'wb')
+    file = open('/tempest/pmarin/monsoon/ENV/V1/Var_Stats_'+cstr_txt+saveadd+'.p', 'wb')
 
-    data = [avg_save, std_save, ran_save, ske_save, kur_save, cnt_save, min_save, p01_save, p05_save, p95_save, p99_save, max_save, q1_save, q3_save, qcd_save, cd_save, stdmm_save, stdmma_save, stdp99_save, stdp95_save, stdp90_save, stdp75_save, cdmma_save, qcdmma_save]
+    data = [avg_save, std_save, ran_save, ran0199_save, ran0595_save, ran1090_save, ran2575_save, ske_save, kur_save, cnt_save, min_save, p01_save, p05_save, p95_save, p99_save, max_save, q1_save, q3_save, qcd_save, cd_save, stdmm_save, stdmma_save, stdp99_save, stdp95_save, stdp90_save, stdp75_save, cdmma_save, qcdmma_save]
     # dump information to that file
     pickle.dump(data, file)
 
