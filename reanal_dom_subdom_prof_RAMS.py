@@ -12,6 +12,7 @@ import copy
 import pickle
 import matplotlib.pyplot as plt
 import matplotlib
+from multiprocessing import Pool
 
 # Function to decompose domains into reanalysis-sized areas
 def grid_decomp(filein,ex_pts,grid_spacing):
@@ -43,80 +44,67 @@ def grid_decomp(filein,ex_pts,grid_spacing):
     return lon_avg,lat_avg,lon_arr,lat_arr,lon0,lat0,lon1,lat1,nx,ny
 
 
-# Loop through cases simulations
-cases = ['SIO1.1-R','ARG1.1-R','ARG1.2-R','PHI2.1-R']
-cases = ['BRA2.1-R','SAU1.1-R','USA3.1-R']
-savepathd = '/tempest/pmarin/monsoon/ENV/V1/Doms/' # Savepath for saving domain images
-savepathp = '/tempest/pmarin/monsoon/ENV/V1/' # Savepath for saving profile fidata
+def plot_surface_wind_domain(cn):
 
+   #### POTENTIAL CHANGES NEEDED
+   savepathd = '/tempest/pmarin/monsoon/ENV/V1/Doms/' # Savepath for saving domain images
+   savepathp = '/tempest/pmarin/monsoon/ENV/V1/' # Savepath for saving profile fidata
+   gs_reanal = 0.25 # Degrees for reanalysis grid boxes
+   ex_pts = 100 # exlcude # grid points near edges
+   #savename = 'all_100_p25_120'
+   #fid = 119
+   savename = 'all_100_p25'
+   fid = 0
+   ######################################################################
 
+   prof = OrderedDict()
+   latlon = OrderedDict()
+   numg = OrderedDict()
+   profs = OrderedDict()
+   latlons_id = OrderedDict()
+   latlons = OrderedDict()
+   numgs = OrderedDict()
 
-# Specify domain features
-gs_reanal = 0.25 # Degrees for reanalysis grid boxes
-ex_pts = 100 # exlcude # grid points near edges
-savename = 'all_100_p25_120'
-fid = 119
+   # Create maps of ERA5 decomposition for saving
+   plt.rcParams.update({'font.size': 16})
+   print(cn)
+   prof[cn] = OrderedDict()
+   profs[cn] = OrderedDict()
+   # get all lite files
+   files = sorted(glob.glob('/monsoon/MODEL/LES_MODEL_DATA/V1/'+cn+'-V1/G3/out_30s/a-L*g3.h5'))
 
-savename = 'all_100_p25'
-fid = 0
+   filein = files[fid] # Choose first lite file
 
-#ex_pts = 200 # exlcude # grid points near edges
-#savename = 'all_200'
+   # Calculate lat /lon bounds
+   lon_avg,lat_avg,lon_arr,lat_arr,lon0,lat0,lon1,lat1,nx,ny = grid_decomp(filein,ex_pts,gs_reanal)
 
-# Define variables for 27KM_AREAS and 1KM_SUBGRID
-prof = OrderedDict()
-latlon = OrderedDict()
-numg = OrderedDict()
-profs = OrderedDict()
-latlons_id = OrderedDict()
-latlons = OrderedDict()
-numgs = OrderedDict()
+   # Variable for plotting
+   rams_file = h5py.File(filein, 'r')
 
-# Create maps of ERA5 decomposition for saving
-# Loop through cases
-plt.rcParams.update({'font.size': 16})
-for c in np.arange(0,len(cases)):
-    cn = cases[c]
-    print(cn)
-    continue
-    prof[cn] = OrderedDict()
-    profs[cn] = OrderedDict()
-    # get all lite files
-    files = sorted(glob.glob('/monsoon/MODEL/LES_MODEL_DATA/V1/'+cn+'-V1/G3/out_30s/a-L*g3.h5'))
-
-    filein = files[fid] # Choose first lite file
-
-    # Calculate lat /lon bounds
-    lon_avg,lat_avg,lon_arr,lat_arr,lon0,lat0,lon1,lat1,nx,ny = grid_decomp(filein,ex_pts,gs_reanal)
-
-    # Variable for plotting
-    rams_file = h5py.File(filein, 'r')
-
-    # Grab lat lon variables from case initial file
-    lat = np.array(rams_file['GLAT'])
-    lon = np.array(rams_file['GLON'])
-    dom_rat = np.shape(lon)[0]/np.shape(lon)[1]
+   # Grab lat lon variables from case initial file
+   lat = np.array(rams_file['GLAT'])
+   lon = np.array(rams_file['GLON'])
+   dom_rat = np.shape(lon)[0]/np.shape(lon)[1]
     
-    #plt_var = rams_file['RV'][51,:,:]*1000 # Plot variable
-
-    plt_var = np.sqrt(np.power(rams_file['UP'][1,:,:],2) + np.power(rams_file['VP'][1,:,:],2)) # Plot variable
+   #plt_var = rams_file['RV'][51,:,:]*1000 # Plot variable
+   plt_var = np.sqrt(np.power(rams_file['UP'][1,:,:],2) + np.power(rams_file['VP'][1,:,:],2)) # Plot variable
     
-    rams_file.close() # Close file
-    
-    w_lvls = 100 # Specify number of contour levels for plotting
-    # Make Plot
-    fig,ax = plt.subplots(1,1,figsize=[7.5,7*dom_rat])
-    a = ax.contourf(lon,lat,plt_var,levels=w_lvls,cmap=plt.cm.viridis,extend='both')
-    for lo in np.arange(0,len(lon_arr)):
+   rams_file.close() # Close file
+  
+   w_lvls = 100 # Specify number of contour levels for plotting
+   # Make Plot
+   fig,ax = plt.subplots(1,1,figsize=[7.5,7*dom_rat])
+   a = ax.contourf(lon,lat,plt_var,levels=w_lvls,cmap=plt.cm.viridis,extend='both')
+   for lo in np.arange(0,len(lon_arr)):
         plt.plot([lon_arr[lo],lon_arr[lo]],[np.min(lat_arr),np.max(lat_arr)],'-w')
 
-    for la in np.arange(0,len(lat_arr)):
+   for la in np.arange(0,len(lat_arr)):
         plt.plot([np.min(lon_arr),np.max(lon_arr)],[lat_arr[la],lat_arr[la]],'-w')
 
-    # Number reanalysis sized boxes
-    cntp = 0    
-    # loop through lat and lon regions (add labels)
-    for lo in np.arange(0,len(lon_arr)-1):
+   # Number reanalysis sized boxes
+   cntp = 0    
+   # loop through lat and lon regions (add labels)
+   for lo in np.arange(0,len(lon_arr)-1):
         for la in np.arange(0,len(lat_arr)-1):
 
             lon_id0 = np.where(np.abs(lon_avg-lon_arr[lo]) == np.min(np.abs(lon_avg-lon_arr[lo])))[0][0]
@@ -128,36 +116,48 @@ for c in np.arange(0,len(cases)):
             plt.text(lon_plot-0.05,lat_plot-0.05,str(cntp),color='w',fontsize=10)
             cntp = cntp + 1
 
-    plt.grid()
-    plt.ylabel('Latitude')
-    plt.xlabel('Longitude')
-    cbar = plt.colorbar(a,ax=ax)
+   plt.grid()
+   plt.ylabel('Latitude')
+   plt.xlabel('Longitude')
+   cbar = plt.colorbar(a,ax=ax)
 
-    #cbar.ax.set_ylabel('Column Maximum Vertical Velocity (m/s)')
+   #cbar.ax.set_ylabel('Column Maximum Vertical Velocity (m/s)')
     #cbar.ax.set_ylabel('5kmAGL Vapor Mixing Ratio (g/kg)')
     #cbar.ax.set_ylabel('Near Surface Potential Temperature (K)')
-    cbar.ax.set_ylabel('Near Surface Wind Speed (m/s)')
+   cbar.ax.set_ylabel('Near Surface Wind Speed (m/s)')
 
-    savefile = savepathd+'G3_5KMRV_Domain_Decomp_0p25deg_'+cn+savename+'.pdf'
-    fig.savefig(savefile)
-    savefile = savepathd+'G3_5KMRV_Domain_Decomp_0p25deg_'+cn+savename+'.png'
-    fig.savefig(savefile)
+   savefile = savepathd+'G3_5KMRV_Domain_Decomp_0p25deg_'+cn+savename+'.pdf'
+   fig.savefig(savefile)
+   savefile = savepathd+'G3_5KMRV_Domain_Decomp_0p25deg_'+cn+savename+'.png'
+   fig.savefig(savefile)
+   plt.close()
 
-# Create profile variables for saving 
-#27KM_AREA Profiles
-prof = OrderedDict() # Variables
-latlon = OrderedDict() # Lat/lon information
-numg = OrderedDict() # Number of Grids
-#1KM_SUBGRID_PROFILES
-profs = OrderedDict()
-latlons_id = OrderedDict()
-latlons = OrderedDict()
-numgs = OrderedDict()
+   return
 
-#Loop through simulation cases
-beg_time2 = datetime.now()
-for c in np.arange(0,len(cases)):
-    cn = cases[c]
+def calculate_profiles(cn):
+
+
+    #### POTENTIAL CHANGES NEEDED
+    savepathd = '/tempest/pmarin/monsoon/ENV/V1/Doms/' # Savepath for saving domain images
+    savepathp = '/tempest/pmarin/monsoon/ENV/V1/' # Savepath for saving profile fidata
+    gs_reanal = 0.25 # Degrees for reanalysis grid boxes
+    ex_pts = 100 # exlcude # grid points near edges
+    #savename = 'all_100_p25_120'
+    #fid = 119
+    savename = 'all_100_p25'
+    fid = 0
+    #############################################################
+
+    # Create profile variables for saving 
+    #27KM_AREA Profiles
+    prof = OrderedDict() # Variables
+    latlon = OrderedDict() # Lat/lon information
+    numg = OrderedDict() # Number of Grids
+    #1KM_SUBGRID_PROFILES
+    profs = OrderedDict()
+    latlons_id = OrderedDict()
+    latlons = OrderedDict()
+    numgs = OrderedDict()
 
     print(cn)
     prof[cn] = OrderedDict()
@@ -353,4 +353,28 @@ for c in np.arange(0,len(cases)):
     with open(savefile, 'wb') as file:
         # A new file will be created
         pickle.dump([prof,latlon,numg,profs,latlons,latlons_id,numgs], file)
+
+
+if __name__ == '__main__':
+
+
+    nproc = 4
+    # Loop through cases simulations
+    cases = ['SIO1.1-R','ARG1.1-R','ARG1.2-R','PHI2.1-R']
+    cases = ['BRA2.1-R','SAU1.1-R','USA3.1-R']
+    plot_on = 1 # Make Plots
+    
+    # Create a Pool of worker processes (np 4 processes)
+    # The 'with' statement ensures the pool is properly closed.
+    if plot_on == 1:
+        with Pool(processes=nproc) as pool:
+            # Use pool.map to apply the function to each item in the iterable
+            # and collect the results. This is a blocking call.
+            pool.map(plot_surface_wind_domain, cases)
+
+    with Pool(processes=nproc) as pool:
+        # Use pool.map to apply the function to each item in the iterable
+        # and collect the results. This is a blocking call.
+        pool.map(calculate_profiles, cases)
+    
 
